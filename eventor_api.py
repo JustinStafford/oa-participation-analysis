@@ -392,3 +392,31 @@ class EventorAPI:
             data.append(membership_dict)
         
         return pd.DataFrame(data)
+    
+    def extract_disciplines_from_events(self, from_date: Optional[str] = None, to_date: Optional[str] = None) -> pd.DataFrame:
+        """
+        Extract unique disciplines from events within a date range.
+        
+        Args:
+            from_date: Optional start date in YYYY-MM-DD format
+            to_date: Optional end date in YYYY-MM-DD format
+            
+        Returns:
+            DataFrame containing unique disciplines with their IDs and names
+        """
+        # Get events data
+        events_data = self.get_events(from_date=from_date, to_date=to_date)
+        
+        # Extract unique disciplines
+        disciplines = set()
+        for event in events_data.findall('.//Event'):
+            for discipline in event.findall('.//Discipline'):
+                discipline_id = discipline.findtext('DisciplineId')
+                name = discipline.findtext('Name')
+                if discipline_id and name:
+                    disciplines.add((discipline_id, name))
+        
+        # Convert to DataFrame
+        return pd.DataFrame(list(disciplines), columns=['DisciplineId', 'Name'])
+    
+    
